@@ -7,4 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class Car extends Model
 {
     protected $fillable = ['company', 'model', 'year'];
+
+    public function problems()
+    {
+        return $this->hasMany(Problem::class);
+    }
 }
