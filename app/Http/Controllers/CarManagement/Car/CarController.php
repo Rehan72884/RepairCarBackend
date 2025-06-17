@@ -36,6 +36,24 @@ class CarController extends Controller
         return response()->json(['success' => true, 'data' => $car]);
     }
 
+    public function getCarProblems($id)
+    {
+        $car = Car::with('problems')->find($id);
+
+        if (!$car) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Car not found',
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => true,
+            'data' => $car->problems,
+        ]);
+    }
+
+
     // 🟢 Update car
     public function update(Request $request, $id)
     {

@@ -12,4 +12,10 @@ class Problem extends Model
     {
         return $this->belongsTo(Car::class);
     }
+
+    public function solutions()
+    {
+        return $this->hasMany(Solution::class);
+    }
+
 }

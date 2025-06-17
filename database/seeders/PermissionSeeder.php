@@ -39,6 +39,16 @@ class PermissionSeeder extends Seeder
             ['name' => 'Add Problem', 'guard_name' => 'web'],
             ['name' => 'Edit Problem', 'guard_name' => 'web'],
             ['name' => 'Delete Problem', 'guard_name' => 'web'],
+            // Solution Permissions
+            ['name' => 'View Solution', 'guard_name' => 'web'],
+            ['name' => 'Add Solution', 'guard_name' => 'web'],
+            ['name' => 'Edit Solution', 'guard_name' => 'web'],
+            ['name' => 'Delete Solution', 'guard_name' => 'web'],
+            // Step Permissions
+            ['name' => 'View Step', 'guard_name' => 'web'],
+            ['name' => 'Add Step', 'guard_name' => 'web'],
+            ['name' => 'Edit Step', 'guard_name' => 'web'],
+            ['name' => 'Delete Step', 'guard_name' => 'web'],
 
         ]);
         $clientRole = Role::create
@@ -49,6 +59,8 @@ class PermissionSeeder extends Seeder
         ([
             'name' => 'Expert',
         ]);
+        $expertRole->givePermissionTo(['View Problem','View Solution' ,'Add Solution', 'Edit Solution', 'Delete Solution',
+            'View Step', 'Add Step', 'Edit Step', 'Delete Step','View Car']);
 
         // Create admin role and assign all permissions.
         $adminRole = Role::create([

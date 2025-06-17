@@ -5,9 +5,11 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\CarManagement\Car\CarController;
 use App\Http\Controllers\RoleManagement\Role\RoleController;
+use App\Http\Controllers\StepManagement\Step\StepController;
 use App\Http\Controllers\UserManagement\User\UserController;
 use App\Http\Controllers\UserManagement\Expert\ExpertController;
 use App\Http\Controllers\ProblemManagement\Problem\ProblemController;
+use App\Http\Controllers\SolutionManagement\Solution\SolutionController;
 
 // Auth Routes
 Route::post('/auth/login', [AuthController::class, 'login']);
@@ -63,16 +65,37 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::get('/edit/{id}', 'show')->middleware('can:View Car');
             Route::post('/update/{id}', 'update')->middleware('can:Edit Car');
             Route::delete('/delete/{id}', 'destroy')->middleware('can:Delete Car');
+            Route::get('/{id}/problems', 'getCarProblems')->middleware('can:View Problem');
         });
     });
     // Problems Routes
     Route::prefix('problems')->group(function () {
-        Route::controller(ProblemController::class)->group(function () {
-            Route::get('/list', 'index')->middleware('can:View Problem');
-            Route::post('/store', 'store')->middleware('can:Add Problem');
-            Route::get('/edit/{id}', 'show')->middleware('can:View Problem');
-            Route::post('/update/{id}', 'update')->middleware('can:Edit Problem');
-            Route::delete('/delete/{id}', 'destroy')->middleware('can:Delete Problem');
+    Route::controller(ProblemController::class)->group(function () {
+        Route::get('/list', 'index')->middleware('can:View Problem');
+        Route::post('/store', 'store')->middleware('can:Add Problem');
+        Route::get('/edit/{id}', 'show')->middleware('can:View Problem');
+        Route::post('/update/{id}', 'update')->middleware('can:Edit Problem');
+        Route::delete('/delete/{id}', 'destroy')->middleware('can:Delete Problem');
+        });
+
+    // Nested: Get solutions for a problem
+    Route::get('{problemId}/solutions', [SolutionController::class, 'index'])->middleware('can:View Solution');
+    });
+
+    Route::prefix('solutions')->group(function () {
+        Route::controller(SolutionController::class)->group(function () {
+            Route::post('/store', 'store')->middleware('can:Add Solution');
+            Route::post('/update/{id}', 'update')->middleware('can:Edit Solution');
+            Route::delete('/delete/{id}', 'destroy')->middleware('can:Delete Solution');
+            Route::get('{solutionId}/steps', [StepController::class, 'index'])->middleware('can:View Step');
+        });
+    });
+
+    Route::prefix('steps')->group(function () {
+        Route::controller(StepController::class)->group(function () {
+            Route::post('/store', 'store')->middleware('can:Add Step');
+            Route::post('/update/{id}', 'update')->middleware('can:Edit Step');
+            Route::delete('/delete/{id}', 'destroy')->middleware('can:Delete Step');
         });
     });
 });
