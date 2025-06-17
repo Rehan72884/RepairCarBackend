@@ -34,6 +34,11 @@ class PermissionSeeder extends Seeder
             ['name' => 'Add Car', 'guard_name' => 'web'],
             ['name' => 'Edit Car', 'guard_name' => 'web'],
             ['name' => 'Delete Car', 'guard_name' => 'web'],
+            // Problem Permissions
+            ['name' => 'View Problem', 'guard_name' => 'web'],
+            ['name' => 'Add Problem', 'guard_name' => 'web'],
+            ['name' => 'Edit Problem', 'guard_name' => 'web'],
+            ['name' => 'Delete Problem', 'guard_name' => 'web'],
 
         ]);
         $clientRole = Role::create

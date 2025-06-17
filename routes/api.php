@@ -64,4 +64,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::delete('/delete/{id}', 'destroy')->middleware('can:Delete Car');
         });
     });
+    // Problems Routes
+    Route::prefix('problems')->group(function () {
+        Route::controller(CarController::class)->group(function () {
+            Route::get('/list', 'index')->middleware('can:View Problem');
+            Route::post('/store', 'store')->middleware('can:Add Problem');
+            Route::get('/edit/{id}', 'show')->middleware('can:View Problem');
+            Route::post('/update/{id}', 'update')->middleware('can:Edit Problem');
+            Route::delete('/delete/{id}', 'destroy')->middleware('can:Delete Problem');
+        });
+    });
 });
