@@ -12,4 +12,10 @@ class Car extends Model
     {
         return $this->hasMany(Problem::class);
     }
+
+    public function clients()
+    {
+        return $this->belongsToMany(User::class, 'client_cars')->withTimestamps();
+    }
+
 }

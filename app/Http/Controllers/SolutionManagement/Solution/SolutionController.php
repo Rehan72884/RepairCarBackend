@@ -12,7 +12,7 @@ class SolutionController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->hasRole('Admin')) {
+        if ($user->hasRole('Admin') || $user->hasRole('Client')) {
             return Solution::with('steps')->where('problem_id', $problemId)->get();
         }
 

@@ -8,6 +8,7 @@ use App\Http\Controllers\RoleManagement\Role\RoleController;
 use App\Http\Controllers\StepManagement\Step\StepController;
 use App\Http\Controllers\UserManagement\User\UserController;
 use App\Http\Controllers\UserManagement\Expert\ExpertController;
+use App\Http\Controllers\CarManagement\ClientCar\ClientCarController;
 use App\Http\Controllers\ProblemManagement\Problem\ProblemController;
 use App\Http\Controllers\SolutionManagement\Solution\SolutionController;
 
@@ -68,6 +69,16 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::get('/{id}/problems', 'getCarProblems')->middleware('can:View Problem');
         });
     });
+
+    // Client cars Routes
+    Route::prefix('client-cars')->group(function () {
+        Route::controller(ClientCarController::class)->group(function () {
+            Route::get('/list', 'index')->middleware('can:View Client Car');
+            Route::post('/store', 'store')->middleware('can:Add Client Car');
+            Route::delete('/delete/{id}', 'destroy');
+        });
+    });
+
     // Problems Routes
     Route::prefix('problems')->group(function () {
     Route::controller(ProblemController::class)->group(function () {

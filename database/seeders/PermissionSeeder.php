@@ -49,12 +49,20 @@ class PermissionSeeder extends Seeder
             ['name' => 'Add Step', 'guard_name' => 'web'],
             ['name' => 'Edit Step', 'guard_name' => 'web'],
             ['name' => 'Delete Step', 'guard_name' => 'web'],
+            // Client Car Permissions
+            ['name' => 'View Client Car', 'guard_name' => 'web'],
+            ['name' => 'Add Client Car', 'guard_name' => 'web'],
+            ['name' => 'Delete Client Car', 'guard_name' => 'web'],
 
         ]);
         $clientRole = Role::create
         ([
             'name' => 'Client',
         ]);
+
+        $clientRole->givePermissionTo(['View Client Car', 'Add Client Car', 'Delete Client Car','View Car','View Problem','View Solution',
+            'View Step']);
+            
          $expertRole = Role::create
         ([
             'name' => 'Expert',
