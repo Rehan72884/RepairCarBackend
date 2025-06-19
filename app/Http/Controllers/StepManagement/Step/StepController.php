@@ -12,16 +12,22 @@ class StepController extends Controller
 {
     public function index($solutionId)
     {
+        $user = auth()->user();
         $solution = Solution::findOrFail($solutionId);
 
-        // Only show steps to the solution owner
-        if ($solution->expert_id !== auth()->id()) {
+        // Allow Admin, the Expert who owns the solution, and Client
+        if (
+            !$user->hasRole('Admin') &&
+            $solution->expert_id !== $user->id &&
+            !$user->hasRole('Client')
+        ) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
         $steps = $solution->steps()->orderBy('order')->get();
         return response()->json(['data' => $steps]);
     }
+
 
     public function store(Request $request)
     {
