@@ -12,14 +12,28 @@ class SolutionController extends Controller
     {
         $user = auth()->user();
 
+        // Base query with steps
+        $query = Solution::with('steps')
+            ->where('problem_id', $problemId);
+
+        // Add aggregates for feedback: likes, dislikes, average_rating
+        $query->withCount([
+            'feedbacks as likes' => function ($q) {
+                $q->where('liked', true);
+            },
+            'feedbacks as dislikes' => function ($q) {
+                $q->where('liked', false);
+            },
+        ])->withAvg('feedbacks as average_rating', 'rating');
+
         if ($user->hasRole('Admin') || $user->hasRole('Client')) {
-            return Solution::with('steps')->where('problem_id', $problemId)->get();
+            $solutions = $query->get();
+        } else {
+            // Experts only see their own solutions
+            $solutions = $query->where('expert_id', $user->id)->get();
         }
 
-        return Solution::with('steps')
-            ->where('problem_id', $problemId)
-            ->where('expert_id', $user->id)
-            ->get();
+        return $solutions;
     }
 
     public function store(Request $request)
