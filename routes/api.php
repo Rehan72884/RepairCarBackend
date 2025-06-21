@@ -11,6 +11,7 @@ use App\Http\Controllers\UserManagement\Expert\ExpertController;
 use App\Http\Controllers\CarManagement\ClientCar\ClientCarController;
 use App\Http\Controllers\ProblemManagement\Problem\ProblemController;
 use App\Http\Controllers\SolutionManagement\Solution\SolutionController;
+use App\Http\Controllers\SolutionManagement\SolutionFeedback\SolutionFeedbackController;
 
 // Auth Routes
 Route::post('/auth/login', [AuthController::class, 'login']);
@@ -101,6 +102,16 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::get('{solutionId}/steps', [StepController::class, 'index'])->middleware('can:View Step');
         });
     });
+    //feedback Routes
+    Route::prefix('feedback')->group(function () {
+        Route::controller(SolutionFeedbackController::class)->group(function () {
+            Route::post('/submit', 'store')->middleware('can:Add feedback');
+            Route::get('/solution/{solutionId}', 'getBySolution')->middleware('can:View feedback');
+            Route::put('/update/{id}', 'update')->middleware('can:Edit feedback');
+            Route::delete('/delete/{id}', 'destroy')->middleware('can:Delete feedback');
+        });
+    });
+
 
     Route::prefix('steps')->group(function () {
         Route::controller(StepController::class)->group(function () {

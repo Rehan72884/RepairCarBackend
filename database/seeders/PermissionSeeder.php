@@ -53,6 +53,10 @@ class PermissionSeeder extends Seeder
             ['name' => 'View Client Car', 'guard_name' => 'web'],
             ['name' => 'Add Client Car', 'guard_name' => 'web'],
             ['name' => 'Delete Client Car', 'guard_name' => 'web'],
+            ['name' => 'View feedback', 'guard_name' => 'web'],
+            ['name' => 'Add feedback', 'guard_name' => 'web'],
+            ['name' => 'Edit feedback', 'guard_name' => 'web'],
+            ['name' => 'Delete feedback', 'guard_name' => 'web'],
 
         ]);
         $clientRole = Role::create
@@ -61,7 +65,7 @@ class PermissionSeeder extends Seeder
         ]);
 
         $clientRole->givePermissionTo(['View Client Car', 'Add Client Car', 'Delete Client Car','View Car','View Problem','View Solution',
-            'View Step']);
+            'View Step','View feedback','Add feedback','Edit feedback','Delete feedback']);
             
          $expertRole = Role::create
         ([
