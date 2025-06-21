@@ -9,11 +9,23 @@ use App\Models\Car;
 
 class ProblemController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $problems = Problem::with('car')->latest()->get();
-        return response()->json(['success' => true, 'data' => $problems]);
+        $query = Problem::with('car')->latest();
+
+        // 👇 Filter only if car_id is passed
+        if ($request->has('car_id')) {
+            $query->where('car_id', $request->car_id);
+        }
+
+        $problems = $query->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $problems,
+        ]);
     }
+
 
     public function store(Request $request)
     {
