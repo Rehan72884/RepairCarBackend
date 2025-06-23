@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\SolutionManagement\Solution;
 
+use App\Models\Problem;
 use App\Models\Solution;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -40,7 +41,6 @@ class SolutionController extends Controller
     {
         $user = auth()->user();
 
-        // Only experts can store
         if (!$user->hasRole('Expert')) {
             return response()->json(['message' => 'Only experts can create solutions'], 403);
         }
@@ -51,6 +51,18 @@ class SolutionController extends Controller
             'description' => 'nullable|string',
         ]);
 
+        $problem = Problem::with('car')->findOrFail($validated['problem_id']);
+
+        if (!$problem->car) {
+            return response()->json(['message' => 'Problem has no associated car'], 400);
+        }
+
+        if ($user->company->value !== $problem->car->company) {
+            return response()->json([
+                'message' => "Unauthorized: You can only add solutions for {$user->company->value} cars"
+            ], 403);
+        }
+
         $validated['expert_id'] = $user->id;
 
         $solution = Solution::create($validated);
@@ -59,17 +71,25 @@ class SolutionController extends Controller
 
     public function update(Request $request, $id)
     {
-        $solution = Solution::findOrFail($id);
+        $solution = Solution::with('problem.car')->findOrFail($id);
         $user = auth()->user();
 
-        // Only the owning expert can update
         if (!$user->hasRole('Expert') || $solution->expert_id !== $user->id) {
             return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $carCompany = optional($solution->problem->car)->company;
+
+        if ($user->company !== $carCompany) {
+            return response()->json([
+                'message' => "Unauthorized: You can only update solutions for {$user->company->value} cars"
+            ], 403);
         }
 
         $solution->update($request->only('title', 'description'));
         return response()->json(['message' => 'Solution updated']);
     }
+
 
     public function destroy($id)
     {
