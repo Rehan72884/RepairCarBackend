@@ -56,6 +56,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::get('/edit/{id}', 'show')->middleware('can:View Expert');
             Route::post('/update/{id}', 'update')->middleware('can:Edit Expert');
             Route::delete('/delete/{id}', 'destroy')->middleware('can:Delete Expert');
+            Route::get('/companies', 'companyList')->middleware('can:View Expert');
         });
     });
 
