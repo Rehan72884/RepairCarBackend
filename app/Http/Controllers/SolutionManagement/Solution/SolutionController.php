@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\SolutionManagement\Solution;
 
 use App\Models\User;
+use App\Models\Problem;
 use App\Models\Solution;
 use Illuminate\Http\Request;
 use App\Models\ClientProblem;
 use App\Http\Controllers\Controller;
 use App\Notifications\SolutionAddedByExpert;
+use App\Notifications\SolutionReadyForClient;
 
 class SolutionController extends Controller
 {
@@ -48,32 +50,63 @@ class SolutionController extends Controller
         }
 
         $validated = $request->validate([
-            'problem_id' => 'required|exists:problems,id',
+            'type' => 'nullable|in:client,default',
+            'problem_id' => 'required|integer',
             'title' => 'required|string',
             'description' => 'nullable|string',
         ]);
 
-        $validated['expert_id'] = $user->id;
+        // If it's a client problem
+        if (($validated['type'] ?? 'default') === 'client') {
+            $clientProblem = ClientProblem::findOrFail($validated['problem_id']);
 
-        $solution = Solution::create($validated);
+            // Optional: verify expert is assigned to this client problem
+            if ($clientProblem->assigned_expert_id !== $user->id) {
+                return response()->json(['message' => 'You are not assigned to this client problem'], 403);
+            }
 
-        // ✅ Notify Admin ONLY if the expert was assigned this problem via ClientProblem
-        $clientProblem = ClientProblem::where('car_id', $solution->problem->car_id)
-            ->where('assigned_expert_id', $user->id)
-            ->where('status', 'assigned')
-            ->first();
-
-        if ($clientProblem) {
             $clientProblem->update(['status' => 'solved']);
 
+            $solution = Solution::create([
+                'problem_id' => $clientProblem->id,
+                'title' => $validated['title'],
+                'description' => $validated['description'],
+                'expert_id' => $user->id,
+            ]);
+
+            // Notify Admin
             $admins = User::role('Admin')->get();
             foreach ($admins as $admin) {
                 $admin->notify(new SolutionAddedByExpert($solution));
             }
+            $client = $clientProblem->client;
+            if ($client) {
+                $client->notify(new SolutionReadyForClient($solution));
+            }
+        }
+        // If it's a regular problem
+        else {
+            $problem = Problem::findOrFail($validated['problem_id']);
+
+            // Optional: check expert's company matches
+            if ($problem->car->company !== $user->company) {
+                return response()->json(['message' => 'You can only solve problems for your company'], 403);
+            }
+
+            $solution = Solution::create([
+                'problem_id' => $problem->id,
+                'title' => $validated['title'],
+                'description' => $validated['description'],
+                'expert_id' => $user->id,
+            ]);
         }
 
-        return response()->json(['message' => 'Solution created', 'data' => $solution]);
+        return response()->json([
+            'message' => 'Solution created',
+            'data' => $solution,
+        ]);
     }
+
 
     public function update(Request $request, $id)
     {
