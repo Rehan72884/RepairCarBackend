@@ -45,6 +45,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::get('/edit/{id}', 'show')->middleware('can:View User');
             Route::post('/update/{id}', 'update')->middleware('can:Edit User');
             Route::get('/delete/{id}', 'destroy')->middleware('can:Delete User');
+            Route::post('/client-problems/request', 'clientRequestProblem')->middleware('can:Add Problem');
         });
     });
 
@@ -88,6 +89,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('/edit/{id}', 'show')->middleware('can:View Problem');
         Route::post('/update/{id}', 'update')->middleware('can:Edit Problem');
         Route::delete('/delete/{id}', 'destroy')->middleware('can:Delete Problem');
+        Route::post('client-problems/assign', 'assignProblemToExpert')->middleware('can:Assign Problem');
         });
 
     // Nested: Get solutions for a problem

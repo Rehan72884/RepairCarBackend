@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers\SolutionManagement\Solution;
 
+use App\Models\User;
 use App\Models\Solution;
 use Illuminate\Http\Request;
+use App\Models\ClientProblem;
 use App\Http\Controllers\Controller;
+use App\Notifications\SolutionAddedByExpert;
 
 class SolutionController extends Controller
 {
@@ -40,7 +43,6 @@ class SolutionController extends Controller
     {
         $user = auth()->user();
 
-        // Only experts can store
         if (!$user->hasRole('Expert')) {
             return response()->json(['message' => 'Only experts can create solutions'], 403);
         }
@@ -54,6 +56,22 @@ class SolutionController extends Controller
         $validated['expert_id'] = $user->id;
 
         $solution = Solution::create($validated);
+
+        // ✅ Notify Admin ONLY if the expert was assigned this problem via ClientProblem
+        $clientProblem = ClientProblem::where('car_id', $solution->problem->car_id)
+            ->where('assigned_expert_id', $user->id)
+            ->where('status', 'assigned')
+            ->first();
+
+        if ($clientProblem) {
+            $clientProblem->update(['status' => 'solved']);
+
+            $admins = User::role('Admin')->get();
+            foreach ($admins as $admin) {
+                $admin->notify(new SolutionAddedByExpert($solution));
+            }
+        }
+
         return response()->json(['message' => 'Solution created', 'data' => $solution]);
     }
 

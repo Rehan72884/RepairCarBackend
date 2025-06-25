@@ -2,14 +2,18 @@
 
 namespace App\Http\Controllers\UserManagement\User;
 
-use App\DataTransferObjects\UserManagement\User\CreateUserDto;
-use App\DataTransferObjects\UserManagement\User\UpdateUserDto;
-use App\Http\Controllers\Controller;
-use App\Http\Requests\UserManagement\User\CreateUserRequest;
-use App\Http\Requests\UserManagement\User\UpdateUserRequest;
-use App\Services\UserManagement\User\UserService;
+use App\Models\User;
+use Illuminate\Http\Request;
+use App\Models\ClientProblem;
 use F9Web\ApiResponseHelpers;
 use Illuminate\Http\JsonResponse;
+use App\Http\Controllers\Controller;
+use App\Notifications\ProblemRequested;
+use App\Services\UserManagement\User\UserService;
+use App\Http\Requests\UserManagement\User\CreateUserRequest;
+use App\Http\Requests\UserManagement\User\UpdateUserRequest;
+use App\DataTransferObjects\UserManagement\User\CreateUserDto;
+use App\DataTransferObjects\UserManagement\User\UpdateUserDto;
 
 class UserController extends Controller
 {
@@ -92,5 +96,29 @@ class UserController extends Controller
             'message' => 'User deleted successfully',
             '_id' => $deletedUserId,
         ]);
+    }
+
+    public function clientRequestProblem(Request $request)
+    {
+        $validated = $request->validate([
+            'car_id' => 'required|exists:cars,id',
+            'title' => 'required|string',
+            'description' => 'nullable|string',
+        ]);
+
+        $problem = ClientProblem::create([
+            'client_id' => auth()->id(),
+            'car_id' => $validated['car_id'],
+            'title' => $validated['title'],
+            'description' => $validated['description'],
+        ]);
+
+        // Notify all Admins
+        $admins = User::role('Admin')->get();
+        foreach ($admins as $admin) {
+            $admin->notify(new ProblemRequested($problem));
+        }
+
+        return response()->json(['message' => 'Problem request sent to admin']);
     }
 }

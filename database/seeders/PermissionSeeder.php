@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -12,83 +12,77 @@ class PermissionSeeder extends Seeder
 {
     public function run(): void
     {
-        // Reset cached roles and permissions for fresh installation.
-        DB::table('permissions')->insert([
+        $permissions = [
             // User Permissions
-            ['name' => 'View User', 'guard_name' => 'web'],
-            ['name' => 'Add User', 'guard_name' => 'web'],
-            ['name' => 'Edit User', 'guard_name' => 'web'],
-            ['name' => 'Delete User', 'guard_name' => 'web'],
+            'View User', 'Add User', 'Edit User', 'Delete User',
+
             // Role Permissions
-            ['name' => 'View Role', 'guard_name' => 'web'],
-            ['name' => 'Add Role', 'guard_name' => 'web'],
-            ['name' => 'Edit Role', 'guard_name' => 'web'],
-            ['name' => 'Delete Role', 'guard_name' => 'web'],
+            'View Role', 'Add Role', 'Edit Role', 'Delete Role',
+
             // Expert Permissions
-            ['name' => 'View Expert', 'guard_name' => 'web'],
-            ['name' => 'Add Expert', 'guard_name' => 'web'],
-            ['name' => 'Edit Expert', 'guard_name' => 'web'],
-            ['name' => 'Delete Expert', 'guard_name' => 'web'],
+            'View Expert', 'Add Expert', 'Edit Expert', 'Delete Expert',
+
             // Car Permissions
-            ['name' => 'View Car', 'guard_name' => 'web'],
-            ['name' => 'Add Car', 'guard_name' => 'web'],
-            ['name' => 'Edit Car', 'guard_name' => 'web'],
-            ['name' => 'Delete Car', 'guard_name' => 'web'],
+            'View Car', 'Add Car', 'Edit Car', 'Delete Car',
+
             // Problem Permissions
-            ['name' => 'View Problem', 'guard_name' => 'web'],
-            ['name' => 'Add Problem', 'guard_name' => 'web'],
-            ['name' => 'Edit Problem', 'guard_name' => 'web'],
-            ['name' => 'Delete Problem', 'guard_name' => 'web'],
+            'View Problem', 'Add Problem', 'Edit Problem', 'Delete Problem', 'Assign Problem',
+
             // Solution Permissions
-            ['name' => 'View Solution', 'guard_name' => 'web'],
-            ['name' => 'Add Solution', 'guard_name' => 'web'],
-            ['name' => 'Edit Solution', 'guard_name' => 'web'],
-            ['name' => 'Delete Solution', 'guard_name' => 'web'],
+            'View Solution', 'Add Solution', 'Edit Solution', 'Delete Solution',
+
             // Step Permissions
-            ['name' => 'View Step', 'guard_name' => 'web'],
-            ['name' => 'Add Step', 'guard_name' => 'web'],
-            ['name' => 'Edit Step', 'guard_name' => 'web'],
-            ['name' => 'Delete Step', 'guard_name' => 'web'],
+            'View Step', 'Add Step', 'Edit Step', 'Delete Step',
+
             // Client Car Permissions
-            ['name' => 'View Client Car', 'guard_name' => 'web'],
-            ['name' => 'Add Client Car', 'guard_name' => 'web'],
-            ['name' => 'Delete Client Car', 'guard_name' => 'web'],
-            ['name' => 'View feedback', 'guard_name' => 'web'],
-            ['name' => 'Add feedback', 'guard_name' => 'web'],
-            ['name' => 'Edit feedback', 'guard_name' => 'web'],
-            ['name' => 'Delete feedback', 'guard_name' => 'web'],
+            'View Client Car', 'Add Client Car', 'Delete Client Car',
 
-        ]);
-        $clientRole = Role::create
-        ([
-            'name' => 'Client',
-        ]);
+            // Feedback Permissions
+            'View feedback', 'Add feedback', 'Edit feedback', 'Delete feedback',
+        ];
 
-        $clientRole->givePermissionTo(['View Client Car', 'Add Client Car', 'Delete Client Car','View Car','View Problem','View Solution',
-            'View Step','View feedback','Add feedback','Edit feedback','Delete feedback']);
-            
-         $expertRole = Role::create
-        ([
-            'name' => 'Expert',
-        ]);
-        $expertRole->givePermissionTo(['View Problem','View Solution' ,'Add Solution', 'Edit Solution', 'Delete Solution',
-            'View Step', 'Add Step', 'Edit Step', 'Delete Step','View Car']);
+        // ✅ Create permissions if they don't exist
+        foreach ($permissions as $permission) {
+            Permission::firstOrCreate(
+                ['name' => $permission],
+                ['guard_name' => 'web']
+            );
+        }
 
-        // Create admin role and assign all permissions.
-        $adminRole = Role::create([
-            'name' => 'Admin',
-        ]);
-        $adminRole->givePermissionTo(Permission::all());
-
-        User::create([
-            'name' => 'Rehan',
-            'email' => 'rehan7@gmail.com',
-            'password' => \Hash::make('Rehan123'),
-            'email_verified_at' => now(),
+        // ✅ Create & sync Client role
+        $clientRole = Role::firstOrCreate(['name' => 'Client']);
+        $clientRole->syncPermissions([
+            'View Client Car', 'Add Client Car', 'Delete Client Car',
+            'View Car', 'View Problem', 'View Solution', 'View Step',
+            'View feedback', 'Add feedback', 'Edit feedback', 'Delete feedback',
+            'Add Problem',
         ]);
 
-        // Assign permission to admin
-        $adminUser = User::where('email', 'rehan7@gmail.com')->first();
-        $adminUser->assignRole($adminRole);
+        // ✅ Create & sync Expert role
+        $expertRole = Role::firstOrCreate(['name' => 'Expert']);
+        $expertRole->syncPermissions([
+            'View Problem', 'View Solution', 'Add Solution', 'Edit Solution', 'Delete Solution',
+            'View Step', 'Add Step', 'Edit Step', 'Delete Step',
+            'View Car',
+        ]);
+
+        // ✅ Create & sync Admin role with all permissions
+        $adminRole = Role::firstOrCreate(['name' => 'Admin']);
+        $adminRole->syncPermissions(Permission::all());
+
+        // ✅ Create Admin User if not exists
+        $adminUser = User::firstOrCreate(
+            ['email' => 'rehan7@gmail.com'],
+            [
+                'name' => 'Rehan',
+                'password' => Hash::make('Rehan123'),
+                'email_verified_at' => now(),
+            ]
+        );
+
+        // ✅ Assign Admin role to user if not already assigned
+        if (!$adminUser->hasRole('Admin')) {
+            $adminUser->assignRole($adminRole);
+        }
     }
 }

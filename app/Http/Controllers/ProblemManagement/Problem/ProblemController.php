@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\ProblemManagement\Problem;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\Problem;
 use App\Models\Car;
+use App\Models\User;
+use App\Models\Problem;
+use Illuminate\Http\Request;
+use App\Models\ClientProblem;
+use App\Http\Controllers\Controller;
+use App\Notifications\ProblemAssignedToExpert;
 
 class ProblemController extends Controller
 {
@@ -83,4 +86,25 @@ class ProblemController extends Controller
             'message' => 'Problem deleted'
         ]);
     }
+
+    public function assignProblemToExpert(Request $request)
+    {
+        $validated = $request->validate([
+            'problem_id' => 'required|exists:client_problems,id',
+            'expert_id' => 'required|exists:users,id',
+        ]);
+
+        $problem = ClientProblem::findOrFail($validated['problem_id']);
+        $expert = User::findOrFail($validated['expert_id']);
+
+        $problem->update([
+            'assigned_expert_id' => $expert->id,
+            'status' => 'assigned',
+        ]);
+
+        $expert->notify(new ProblemAssignedToExpert($problem));
+
+        return response()->json(['message' => 'Problem assigned to expert']);
+    }
+
 }
