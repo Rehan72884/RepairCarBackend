@@ -18,6 +18,7 @@ Route::post('/auth/login', [AuthController::class, 'login']);
 Route::get('/auth/logout', [AuthController::class, 'logout']);
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::get('/unathorize', [AuthController::class, 'unauthorize'])->name('login');
+Route::post('/webhook/stripe', [StripeWebhookController::class, 'handleWebhook']);
 
 Route::get('/user', function (Request $request) {
     return $request->user()->load('roles.permissions');
@@ -46,6 +47,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::post('/update/{id}', 'update')->middleware('can:Edit User');
             Route::get('/delete/{id}', 'destroy')->middleware('can:Delete User');
             Route::post('/client-problems/request', 'clientRequestProblem')->middleware('can:Add Problem');
+            Route::post('/pay-for-request', 'payForClientProblem')->middleware('can:Pay for Request');
         });
     });
 

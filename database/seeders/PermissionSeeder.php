@@ -14,7 +14,7 @@ class PermissionSeeder extends Seeder
     {
         $permissions = [
             // User Permissions
-            'View User', 'Add User', 'Edit User', 'Delete User',
+            'View User', 'Add User', 'Edit User', 'Delete User', 'Pay for Request',
 
             // Role Permissions
             'View Role', 'Add Role', 'Edit Role', 'Delete Role',
@@ -55,7 +55,7 @@ class PermissionSeeder extends Seeder
             'View Client Car', 'Add Client Car', 'Delete Client Car',
             'View Car', 'View Problem', 'View Solution', 'View Step',
             'View feedback', 'Add feedback', 'Edit feedback', 'Delete feedback',
-            'Add Problem',
+            'Add Problem','Pay for Request',
         ]);
 
         // ✅ Create & sync Expert role

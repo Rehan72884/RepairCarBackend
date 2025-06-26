@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\UserManagement\User;
 
+use Stripe\Stripe;
+use Stripe\Checkout\Session;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Models\ClientProblem;
@@ -120,5 +122,29 @@ class UserController extends Controller
         }
 
         return response()->json(['message' => 'Problem request sent to admin']);
+    }
+
+    public function payForClientProblem(Request $request)
+    {
+        Stripe::setApiKey(env('STRIPE_SECRET'));
+
+        $session = Session::create([
+            'payment_method_types' => ['card'],
+            'line_items' => [[
+                'price_data' => [
+                    'currency' => 'usd',
+                    'product_data' => [
+                        'name' => 'Car Problem Solution Request',
+                    ],
+                    'unit_amount' => 500 * 100, // 500 Rs in paisa (or $5 if usd)
+                ],
+                'quantity' => 1,
+            ]],
+            'mode' => 'payment',
+            'success_url' => route('client.problem.success'),
+            'cancel_url' => route('client.problem.cancel'),
+        ]);
+
+        return response()->json(['url' => $session->url]);
     }
 }
