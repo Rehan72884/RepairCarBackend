@@ -10,6 +10,7 @@ use App\Http\Controllers\UserManagement\User\UserController;
 use App\Http\Controllers\UserManagement\Expert\ExpertController;
 use App\Http\Controllers\CarManagement\ClientCar\ClientCarController;
 use App\Http\Controllers\ProblemManagement\Problem\ProblemController;
+use App\Http\Controllers\NotificationManagement\NotificationController;
 use App\Http\Controllers\SolutionManagement\Solution\SolutionController;
 use App\Http\Controllers\SolutionManagement\SolutionFeedback\SolutionFeedbackController;
 
@@ -120,6 +121,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::post('/store', 'store')->middleware('can:Add Step');
             Route::post('/update/{id}', 'update')->middleware('can:Edit Step');
             Route::delete('/delete/{id}', 'destroy')->middleware('can:Delete Step');
+        });
+    });
+    //Notification Routes
+    Route::prefix('notifications')->group(function () {
+        Route::controller(NotificationController::class)->group(function () {
+            Route::get('/list', 'getNotifications')->middleware('can:View Notification');
+            Route::post('/mark-as-read', 'markAsRead')->middleware('can:Edit Notification');
+            Route::delete('/delete', 'deleteNotification')->middleware('can:Delete Notification');
         });
     });
 });

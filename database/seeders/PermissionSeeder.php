@@ -39,6 +39,9 @@ class PermissionSeeder extends Seeder
 
             // Feedback Permissions
             'View feedback', 'Add feedback', 'Edit feedback', 'Delete feedback',
+
+            // Notification Permissions
+            'View Notification', 'Edit Notification', 'Delete Notification',
         ];
 
         // ✅ Create permissions if they don't exist
@@ -55,7 +58,7 @@ class PermissionSeeder extends Seeder
             'View Client Car', 'Add Client Car', 'Delete Client Car',
             'View Car', 'View Problem', 'View Solution', 'View Step',
             'View feedback', 'Add feedback', 'Edit feedback', 'Delete feedback',
-            'Add Problem',
+            'Add Problem', 'View Notification', 'Edit Notification', 'Delete Notification',
         ]);
 
         // ✅ Create & sync Expert role
@@ -63,7 +66,7 @@ class PermissionSeeder extends Seeder
         $expertRole->syncPermissions([
             'View Problem', 'View Solution', 'Add Solution', 'Edit Solution', 'Delete Solution',
             'View Step', 'Add Step', 'Edit Step', 'Delete Step',
-            'View Car',
+            'View Car', 'View Notification', 'Edit Notification', 'Delete Notification',
         ]);
 
         // ✅ Create & sync Admin role with all permissions
