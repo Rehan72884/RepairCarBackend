@@ -91,6 +91,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('/update/{id}', 'update')->middleware('can:Edit Problem');
         Route::delete('/delete/{id}', 'destroy')->middleware('can:Delete Problem');
         Route::post('client-problems/assign', 'assignProblemToExpert')->middleware('can:Assign Problem');
+        Route::get('/client-problems/pending', 'getPendingProblems')->middleware('can:View Problem');
+        Route::get('/client-problems/assigned', 'getAssignedProblemsForExpert')->middleware('can:View Problem');
         });
 
     // Nested: Get solutions for a problem

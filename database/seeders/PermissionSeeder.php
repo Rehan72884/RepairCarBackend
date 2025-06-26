@@ -56,7 +56,7 @@ class PermissionSeeder extends Seeder
         $clientRole = Role::firstOrCreate(['name' => 'Client']);
         $clientRole->syncPermissions([
             'View Client Car', 'Add Client Car', 'Delete Client Car',
-            'View Car', 'View Problem', 'View Solution', 'View Step',
+            'View Car', 'View Problem','Add Problem', 'View Solution', 'View Step',
             'View feedback', 'Add feedback', 'Edit feedback', 'Delete feedback',
             'Add Problem', 'View Notification', 'Edit Notification', 'Delete Notification',
         ]);

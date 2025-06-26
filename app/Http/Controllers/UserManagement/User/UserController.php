@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\UserManagement\User;
 
 use App\Models\User;
+use App\Models\Problem;
 use Illuminate\Http\Request;
 use App\Models\ClientProblem;
 use F9Web\ApiResponseHelpers;
@@ -106,17 +107,23 @@ class UserController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        $problem = ClientProblem::create([
+        $clientProblem = ClientProblem::create([
             'client_id' => auth()->id(),
             'car_id' => $validated['car_id'],
             'title' => $validated['title'],
             'description' => $validated['description'],
         ]);
 
+        $problem = Problem::create([
+        'car_id' => $validated['car_id'],
+        'title' => $validated['title'],
+        'description' => $validated['description'],
+    ]);
+
         // Notify all Admins
         $admins = User::role('Admin')->get();
         foreach ($admins as $admin) {
-            $admin->notify(new ProblemRequested($problem));
+            $admin->notify(new ProblemRequested($clientProblem));
         }
 
         return response()->json(['message' => 'Problem request sent to admin']);

@@ -107,4 +107,31 @@ class ProblemController extends Controller
         return response()->json(['message' => 'Problem assigned to expert']);
     }
 
+    public function getPendingProblems()
+    {
+        $pendingProblems = ClientProblem::with(['client', 'car'])
+            ->where('status', 'pending')
+            ->whereNull('assigned_expert_id')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $pendingProblems,
+        ]);
+    }
+    
+    public function getAssignedProblemsForExpert()
+    {
+        $user = auth()->user();
+
+        $problems = ClientProblem::with('car')
+            ->where('assigned_expert_id', $user->id)
+            ->where('status', 'assigned')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $problems,
+        ]);
+    }
 }
