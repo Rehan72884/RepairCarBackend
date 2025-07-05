@@ -2,7 +2,7 @@
 
 namespace App\Notifications;
 
-use App\Models\ClientProblem;
+use App\Models\Problem;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 
@@ -10,7 +10,7 @@ class ProblemAssignedToExpert extends Notification
 {
     use Queueable;
 
-    public function __construct(public ClientProblem $problem) {}
+    public function __construct(public Problem $problem) {}
 
     public function via($notifiable)
     {

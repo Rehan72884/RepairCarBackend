@@ -2,7 +2,7 @@
 
 namespace App\Notifications;
 
-use App\Models\ClientProblem;
+use App\Models\Problem;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -12,7 +12,7 @@ class ProblemRequested extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    public function __construct(public ClientProblem $problem) {}
+    public function __construct(public Problem $problem) {}
 
     public function via($notifiable)
     {

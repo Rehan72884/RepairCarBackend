@@ -6,7 +6,6 @@ use App\Models\Car;
 use App\Models\User;
 use App\Models\Problem;
 use Illuminate\Http\Request;
-use App\Models\ClientProblem;
 use App\Http\Controllers\Controller;
 use App\Notifications\ProblemAssignedToExpert;
 
@@ -89,12 +88,13 @@ class ProblemController extends Controller
 
     public function assignProblemToExpert(Request $request)
     {
+        
         $validated = $request->validate([
-            'problem_id' => 'required|exists:client_problems,id',
+            'problem_id' => 'required|exists:problems,id',
             'expert_id' => 'required|exists:users,id',
         ]);
 
-        $problem = ClientProblem::findOrFail($validated['problem_id']);
+        $problem = Problem::whereNotNull('client_id')->findOrFail($validated['problem_id']);
         $expert = User::findOrFail($validated['expert_id']);
 
         $problem->update([
@@ -107,9 +107,11 @@ class ProblemController extends Controller
         return response()->json(['message' => 'Problem assigned to expert']);
     }
 
-    public function getPendingProblems()
+
+   public function getPendingProblems()
     {
-        $pendingProblems = ClientProblem::with(['client', 'car'])
+        $pendingProblems = Problem::with(['client', 'car'])
+            ->whereNotNull('client_id')
             ->where('status', 'pending')
             ->whereNull('assigned_expert_id')
             ->orderBy('created_at', 'desc')
@@ -120,12 +122,14 @@ class ProblemController extends Controller
             'data' => $pendingProblems,
         ]);
     }
+
     
     public function getAssignedProblemsForExpert()
     {
         $user = auth()->user();
 
-        $problems = ClientProblem::with('car')
+        $problems = Problem::with('car')
+            ->whereNotNull('client_id')
             ->where('assigned_expert_id', $user->id)
             ->where('status', 'assigned')
             ->get();

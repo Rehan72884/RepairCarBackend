@@ -6,7 +6,6 @@ use App\Models\User;
 use App\Models\Problem;
 use App\Models\Solution;
 use Illuminate\Http\Request;
-use App\Models\ClientProblem;
 use App\Http\Controllers\Controller;
 use App\Notifications\SolutionAddedByExpert;
 use App\Notifications\SolutionReadyForClient;
@@ -56,38 +55,36 @@ class SolutionController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        // If it's a client problem
-        if (($validated['type'] ?? 'default') === 'client') {
-            $clientProblem = ClientProblem::findOrFail($validated['problem_id']);
+        $problem = Problem::findOrFail($validated['problem_id']);
 
-            // Optional: verify expert is assigned to this client problem
-            if ($clientProblem->assigned_expert_id !== $user->id) {
+        // If it's a client problem
+        if ($problem->client_id !== null) {
+            if ($problem->assigned_expert_id !== $user->id) {
                 return response()->json(['message' => 'You are not assigned to this client problem'], 403);
             }
 
-            $clientProblem->update(['status' => 'solved']);
+            $problem->update(['status' => 'solved']);
 
             $solution = Solution::create([
-                'problem_id' => $clientProblem->id,
+                'problem_id' => $problem->id,
                 'title' => $validated['title'],
                 'description' => $validated['description'],
                 'expert_id' => $user->id,
             ]);
 
-            // Notify Admin
+            // Notify Admins
             $admins = User::role('Admin')->get();
             foreach ($admins as $admin) {
                 $admin->notify(new SolutionAddedByExpert($solution));
             }
-            $client = $clientProblem->client;
+
+            $client = $problem->client;
             if ($client) {
                 $client->notify(new SolutionReadyForClient($solution));
             }
         }
         // If it's a regular problem
         else {
-            $problem = Problem::findOrFail($validated['problem_id']);
-
             // Optional: check expert's company matches
             if ($problem->car->company !== $user->company) {
                 return response()->json(['message' => 'You can only solve problems for your company'], 403);
@@ -106,7 +103,6 @@ class SolutionController extends Controller
             'data' => $solution,
         ]);
     }
-
 
     public function update(Request $request, $id)
     {

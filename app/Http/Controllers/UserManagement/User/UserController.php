@@ -5,7 +5,6 @@ namespace App\Http\Controllers\UserManagement\User;
 use App\Models\User;
 use App\Models\Problem;
 use Illuminate\Http\Request;
-use App\Models\ClientProblem;
 use F9Web\ApiResponseHelpers;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
@@ -20,15 +19,13 @@ class UserController extends Controller
 {
     use ApiResponseHelpers;
 
-    // injecting the dependecies
     public function __construct(private readonly UserService $userService) {}
 
+    // Get all users
     public function index(): JsonResponse
     {
-        // getting all users
         $users = $this->userService->allUsers();
 
-        // returning the users
         return $this->respondWithSuccess([
             'success' => true,
             'message' => 'Users fetched successfully',
@@ -36,13 +33,11 @@ class UserController extends Controller
         ]);
     }
 
-    // creating a new user
+    // Create new user
     public function store(CreateUserRequest $request)
     {
-        // creating a new user with given data
         $user = $this->userService->addUser(CreateUserDto::fromApiRequest($request));
 
-        // returning the newly created user
         return $this->respondCreated([
             'success' => true,
             'message' => 'User created successfully',
@@ -50,26 +45,22 @@ class UserController extends Controller
         ]);
     }
 
-    // updating a user
+    // Update user
     public function update(UpdateUserRequest $request, $id): JsonResponse
     {
-        // updating the user with given id
         $user = $this->userService->updateUser(UpdateUserDto::fromApiRequest($request), $id);
 
-        // returning the updated user
         return $this->respondWithSuccess([
             'success' => true,
             'user' => $user->load('roles.permissions'),
         ]);
     }
 
-    // viewing a user
+    // Show user
     public function show($id): JsonResponse
     {
-        // getting the user with given id
         $user = $this->userService->getUserById($id);
 
-        // returning the user
         return $this->respondWithSuccess([
             'success' => true,
             'message' => 'User fetched successfully!',
@@ -77,21 +68,18 @@ class UserController extends Controller
         ]);
     }
 
-    // deleting a user
+    // Delete user
     public function destroy($id)
     {
-        // deleting the user with given id
         $deletedUserId = $this->userService->deleteUser($id);
 
-        // checking if user was deleted successfully
         if ($deletedUserId == -1) {
-            return $this->respondForbidden([
+            return response()->json([
                 'success' => false,
                 'message' => 'Cannot delete admin user',
-            ]);
+            ], 403);
         }
 
-        // returning a success message
         return $this->respondWithSuccess([
             'success' => true,
             'message' => 'User deleted successfully',
@@ -99,33 +87,45 @@ class UserController extends Controller
         ]);
     }
 
+    // Client submits a problem request
     public function clientRequestProblem(Request $request)
-    {
-        $validated = $request->validate([
-            'car_id' => 'required|exists:cars,id',
-            'title' => 'required|string',
-            'description' => 'nullable|string',
-        ]);
+{
+    $user = auth()->user();
 
-        $clientProblem = ClientProblem::create([
-            'client_id' => auth()->id(),
-            'car_id' => $validated['car_id'],
-            'title' => $validated['title'],
-            'description' => $validated['description'],
-        ]);
+    // ✅ Check if the user is authenticated
+    if (!$user || !$user->hasRole('Client')) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Unauthorized. Please login as a client.',
+        ], 401);
+    }
 
-        $problem = Problem::create([
+    // ✅ Validate input
+    $validated = $request->validate([
+        'car_id' => 'required|exists:cars,id',
+        'title' => 'required|string',
+        'description' => 'nullable|string',
+    ]);
+
+    // ✅ Create the problem with the authenticated client's ID
+    $problem = Problem::create([
+        'client_id' => $user->id,
         'car_id' => $validated['car_id'],
         'title' => $validated['title'],
         'description' => $validated['description'],
     ]);
 
-        // Notify all Admins
-        $admins = User::role('Admin')->get();
-        foreach ($admins as $admin) {
-            $admin->notify(new ProblemRequested($clientProblem));
-        }
-
-        return response()->json(['message' => 'Problem request sent to admin']);
+    // ✅ Notify Admins
+    $admins = User::role('Admin')->get();
+    foreach ($admins as $admin) {
+        $admin->notify(new ProblemRequested($problem));
     }
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Problem request sent to admin',
+        'problem' => $problem,
+    ]);
+}
+
 }
