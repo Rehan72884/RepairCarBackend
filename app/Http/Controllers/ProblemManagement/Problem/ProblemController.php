@@ -112,6 +112,7 @@ class ProblemController extends Controller
         $pendingProblems = ClientProblem::with(['client', 'car'])
             ->where('status', 'pending')
             ->whereNull('assigned_expert_id')
+            ->orderBy('created_at', 'desc')
             ->get();
 
         return response()->json([
