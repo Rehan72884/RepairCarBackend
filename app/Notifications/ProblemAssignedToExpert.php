@@ -17,12 +17,13 @@ class ProblemAssignedToExpert extends Notification
         return ['database'];
     }
 
-    public function toArray($notifiable)
+   public function toArray($notifiable)
     {
         return [
             'title' => 'You Have Been Assigned a New Problem',
-            'message' => "Problem: {$this->problem->title} (Car ID: {$this->problem->car_id})",
+            'message' => "Problem: {$this->problem->title} (Car Company: {$this->problem->car->company}, Car Model: {$this->problem->car->model})",
             'problem_id' => $this->problem->id,
         ];
     }
+
 }
