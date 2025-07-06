@@ -19,7 +19,7 @@ class SolutionController extends Controller
         $user = auth()->user();
 
         // Base query with steps
-        $query = Solution::with('steps')
+        $query = Solution::with(['steps', 'feedbacks.user'])
             ->where('problem_id', $problemId);
 
         // Add aggregates for feedback: likes, dislikes, average_rating
