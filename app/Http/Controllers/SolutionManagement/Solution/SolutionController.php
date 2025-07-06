@@ -6,9 +6,11 @@ use App\Models\User;
 use App\Models\Problem;
 use App\Models\Solution;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Notifications\SolutionAddedByExpert;
 use App\Notifications\SolutionReadyForClient;
+use App\Notifications\SubscribedExpertAddedSolution;
 
 class SolutionController extends Controller
 {
@@ -96,6 +98,15 @@ class SolutionController extends Controller
                 'description' => $validated['description'],
                 'expert_id' => $user->id,
             ]);
+            $subscribedClientIds = DB::table('expert_client_subscriptions')
+                ->where('expert_id', $user->id)
+                ->pluck('client_id');
+
+            $clients = User::whereIn('id', $subscribedClientIds)->get();
+
+            foreach ($clients as $client) {
+                $client->notify(new SubscribedExpertAddedSolution($solution));
+            }
         }
 
         return response()->json([
