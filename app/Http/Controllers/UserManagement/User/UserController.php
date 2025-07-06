@@ -7,6 +7,7 @@ use App\Models\Problem;
 use Illuminate\Http\Request;
 use F9Web\ApiResponseHelpers;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Notifications\ProblemRequested;
 use App\Services\UserManagement\User\UserService;
@@ -19,7 +20,9 @@ class UserController extends Controller
 {
     use ApiResponseHelpers;
 
-    public function __construct(private readonly UserService $userService) {}
+    public function __construct(private readonly UserService $userService)
+    {
+    }
 
     // Get all users
     public function index(): JsonResponse
@@ -89,43 +92,85 @@ class UserController extends Controller
 
     // Client submits a problem request
     public function clientRequestProblem(Request $request)
-{
-    $user = auth()->user();
+    {
+        $user = auth()->user();
 
-    // ✅ Check if the user is authenticated
-    if (!$user || !$user->hasRole('Client')) {
+        // ✅ Check if the user is authenticated
+        if (!$user || !$user->hasRole('Client')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Please login as a client.',
+            ], 401);
+        }
+
+        // ✅ Validate input
+        $validated = $request->validate([
+            'car_id' => 'required|exists:cars,id',
+            'title' => 'required|string',
+            'description' => 'nullable|string',
+        ]);
+
+        // ✅ Create the problem with the authenticated client's ID
+        $problem = Problem::create([
+            'client_id' => $user->id,
+            'car_id' => $validated['car_id'],
+            'title' => $validated['title'],
+            'description' => $validated['description'],
+        ]);
+
+        // ✅ Notify Admins
+        $admins = User::role('Admin')->get();
+        foreach ($admins as $admin) {
+            $admin->notify(new ProblemRequested($problem));
+        }
+
         return response()->json([
-            'success' => false,
-            'message' => 'Unauthorized. Please login as a client.',
-        ], 401);
+            'success' => true,
+            'message' => 'Problem request sent to admin',
+            'problem' => $problem,
+        ]);
     }
+    public function subscribe(Request $request)
+    {
+        $clientId = auth()->id(); // Assuming Sanctum auth
 
-    // ✅ Validate input
-    $validated = $request->validate([
-        'car_id' => 'required|exists:cars,id',
-        'title' => 'required|string',
-        'description' => 'nullable|string',
-    ]);
+        $validated = $request->validate([
+            'expert_ids' => 'required|array',
+            'expert_ids.*' => 'exists:users,id'
+        ]);
 
-    // ✅ Create the problem with the authenticated client's ID
-    $problem = Problem::create([
-        'client_id' => $user->id,
-        'car_id' => $validated['car_id'],
-        'title' => $validated['title'],
-        'description' => $validated['description'],
-    ]);
+        // Remove old subscriptions
+        DB::table('expert_client_subscriptions')->where('client_id', $clientId)->delete();
 
-    // ✅ Notify Admins
-    $admins = User::role('Admin')->get();
-    foreach ($admins as $admin) {
-        $admin->notify(new ProblemRequested($problem));
+        // Insert new
+        foreach ($validated['expert_ids'] as $expertId) {
+            DB::table('expert_client_subscriptions')->insert([
+                'client_id' => $clientId,
+                'expert_id' => $expertId,
+                'created_at' => now()
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Subscriptions updated',
+            'data' => [
+                'client_id' => $clientId,
+                'expert_ids' => $validated['expert_ids']
+            ]
+        ], 200);
     }
+    public function mySubscriptions()
+    {
+        $clientId = auth()->id();
 
-    return response()->json([
-        'success' => true,
-        'message' => 'Problem request sent to admin',
-        'problem' => $problem,
-    ]);
-}
+        $subscribedExpertIds = DB::table('expert_client_subscriptions')
+            ->where('client_id', $clientId)
+            ->pluck('expert_id');
 
+        return response()->json([
+            'success' => true,
+            'data' => $subscribedExpertIds
+        ]);
+    }
 }

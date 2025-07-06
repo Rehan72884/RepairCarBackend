@@ -47,6 +47,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::post('/update/{id}', 'update')->middleware('can:Edit User');
             Route::get('/delete/{id}', 'destroy')->middleware('can:Delete User');
             Route::post('/client-problems/request', 'clientRequestProblem')->middleware('can:Add Problem');
+            Route::post('/subscribe-expert', 'subscribe')->middleware('can:Subscribe User');
+            Route::get('my-subscriptions', 'mySubscriptions')->middleware('can:View Subscribe User');
         });
     });
 
