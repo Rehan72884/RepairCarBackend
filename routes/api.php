@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Message\MessageController;
 use App\Http\Controllers\CarManagement\Car\CarController;
 use App\Http\Controllers\RoleManagement\Role\RoleController;
 use App\Http\Controllers\StepManagement\Step\StepController;
@@ -37,6 +38,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::get('/delete/{id}', 'destroy')->middleware('can:Delete Role');
         });
     });
+     Route::prefix('messages')->group(function () {
+        Route::controller(MessageController::class)->group(function () {
+    Route::get('/', 'index')->middleware('can:View Message');
+    Route::post('/send', 'store')->middleware('can:Send Message');
+    Route::post('/read/{id}', 'markAsRead')->middleware('can:Read Message');
+    });
+});
 
     // User Routes
     Route::prefix('users')->group(function () {

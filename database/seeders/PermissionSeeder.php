@@ -42,6 +42,9 @@ class PermissionSeeder extends Seeder
 
             // Notification Permissions
             'View Notification', 'Edit Notification', 'Delete Notification',
+
+            // Message Permissions
+            'View Message', 'Send Message', 'Read Message',
         ];
 
         // ✅ Create permissions if they don't exist
@@ -59,6 +62,7 @@ class PermissionSeeder extends Seeder
             'View Car', 'View Problem','Add Problem', 'View Solution', 'View Step',
             'View feedback', 'Add feedback', 'Edit feedback', 'Delete feedback',
             'Add Problem', 'View Notification', 'Edit Notification', 'Delete Notification','Subscribe User','View Expert','View Subscribe User',
+            'View Message', 'Send Message', 'Read Message',
         ]);
 
         // ✅ Create & sync Expert role
@@ -67,6 +71,7 @@ class PermissionSeeder extends Seeder
             'View Problem', 'View Solution', 'Add Solution', 'Edit Solution', 'Delete Solution',
             'View Step', 'Add Step', 'Edit Step', 'Delete Step',
             'View Car', 'View Notification', 'Edit Notification', 'Delete Notification',
+            'View Message', 'Send Message', 'Read Message',
         ]);
 
         // ✅ Create & sync Admin role with all permissions
