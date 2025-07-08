@@ -2,18 +2,25 @@
 
 namespace App\Http\Controllers\CarManagement\Car;
 
-use App\Http\Controllers\Controller;
 use App\Models\Car;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 
 class CarController extends Controller
 {
     // 🟢 List all cars
-    public function index()
-    {
-        $cars = Car::all();
-        return response()->json(['success' => true, 'data' => $cars]);
+    public function index(Request $request)
+{
+    $query = Car::query();
+
+    if ($request->has('company')) {
+        $query->where('company', $request->company);
     }
+
+    return response()->json(['success' => true, 'data' => $query->get()]);
+}
+
 
     // 🟢 Store new car
     public function store(Request $request)
@@ -77,5 +84,16 @@ class CarController extends Controller
         $car->delete();
 
         return response()->json(['success' => true, 'message' => 'Car deleted successfully']);
+    }
+    public function getAssignedCarsForExpert()
+    {
+        $user = Auth::user();
+
+        // Get cars where:
+        // - The car is assigned to the expert via car_user
+        // - The car's company matches the expert's company
+        $cars = $user->cars()->where('company', $user->company)->get();
+
+        return response()->json(['success' => true, 'data' => $cars]);
     }
 }

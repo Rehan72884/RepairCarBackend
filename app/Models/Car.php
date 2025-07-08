@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Model;
 
 class Car extends Model
@@ -18,4 +19,5 @@ class Car extends Model
         return $this->belongsToMany(User::class, 'client_cars')->withTimestamps();
     }
 
+    
 }

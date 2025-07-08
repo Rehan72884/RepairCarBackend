@@ -36,5 +36,10 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Car::class, 'client_cars')->withTimestamps();
     }
+    public function cars()
+{
+    return $this->belongsToMany(Car::class, 'car_user'); // Pivot table
+}
+
 
 }

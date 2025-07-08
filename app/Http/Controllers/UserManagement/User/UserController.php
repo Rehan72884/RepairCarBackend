@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers\UserManagement\User;
 
-use App\DataTransferObjects\UserManagement\User\CreateUserDto;
-use App\DataTransferObjects\UserManagement\User\UpdateUserDto;
-use App\Http\Controllers\Controller;
-use App\Http\Requests\UserManagement\User\CreateUserRequest;
-use App\Http\Requests\UserManagement\User\UpdateUserRequest;
-use App\Services\UserManagement\User\UserService;
+use App\Models\RatingFeedback;
+use Illuminate\Http\Request;
 use F9Web\ApiResponseHelpers;
 use Illuminate\Http\JsonResponse;
+use App\Http\Controllers\Controller;
+use App\Services\UserManagement\User\UserService;
+use App\Http\Requests\UserManagement\User\CreateUserRequest;
+use App\Http\Requests\UserManagement\User\UpdateUserRequest;
+use App\DataTransferObjects\UserManagement\User\CreateUserDto;
+use App\DataTransferObjects\UserManagement\User\UpdateUserDto;
 
 class UserController extends Controller
 {
@@ -93,4 +95,25 @@ class UserController extends Controller
             '_id' => $deletedUserId,
         ]);
     }
+
+    public function storeRating(Request $request)
+    {
+        $request->validate([
+            'expert_id' => 'required|exists:users,id',
+            'liked' => 'nullable|boolean',
+            'rating' => 'nullable|integer|min:1|max:5',
+            'feedback' => 'nullable|string',
+        ]);
+
+        $feedback = RatingFeedback::updateOrCreate(
+            [
+                'expert_id' => $request->expert_id,
+                'user_id' => auth()->id()
+            ],
+            $request->only('liked', 'rating', 'feedback')
+        );
+
+        return response()->json(['message' => 'Feedback submitted', 'data' => $feedback]);
+    }
+
 }

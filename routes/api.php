@@ -45,6 +45,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::get('/edit/{id}', 'show')->middleware('can:View User');
             Route::post('/update/{id}', 'update')->middleware('can:Edit User');
             Route::get('/delete/{id}', 'destroy')->middleware('can:Delete User');
+            Route::post('/submit-expert-rating', 'storeRating')->middleware('can:Add feedback');
         });
     });
 
@@ -60,6 +61,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
         });
     });
 
+
     // cars Routes
     Route::prefix('cars')->group(function () {
         Route::controller(CarController::class)->group(function () {
@@ -69,6 +71,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
             Route::post('/update/{id}', 'update')->middleware('can:Edit Car');
             Route::delete('/delete/{id}', 'destroy')->middleware('can:Delete Car');
             Route::get('/{id}/problems', 'getCarProblems')->middleware('can:View Problem');
+            Route::get('/assigned', 'getAssignedCarsForExpert')->middleware('can:View Car');
         });
     });
 
